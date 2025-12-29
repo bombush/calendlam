@@ -109,53 +109,42 @@ def output_signatures_as_single_page(signatures):
         signatures: List of signatures from generate_signatures_for_a5_print()
     """
     all_pages_content = ""
-    global_a4_sheet_counter = 0  # Track A4 sheets across all signatures
+    global_a4_side_counter = 0  # Track A4 sheet sides across all signatures
     
     for signature_number, signature in enumerate(signatures):
+        # Each div id="page" = 1 A4 sheet side when printed
+        # When printing double-sided, 2 consecutive div id="page" = 1 A4 sheet (front + back)
         # Calculate A4 sheet range for this signature
-        # Each signature has pages_per_signature physical pages = pages_per_signature A4 sheets
-        # (since each physical page = 1 A4 sheet when printed double-sided)
-        pages_per_signature = len(signature) // 2  # Each physical page = 2 sides
-        signature_start_a4 = global_a4_sheet_counter + 1
-        signature_end_a4 = global_a4_sheet_counter + pages_per_signature
+        num_weeks_in_signature = len(signature)  # Each week = 1 A4 sheet side
+        num_a4_sheets_in_signature = (num_weeks_in_signature + 1) // 2  # 2 sides = 1 A4 sheet
+        signature_start_a4 = (global_a4_side_counter // 2) + 1  # A4 sheet number (1-based)
+        signature_end_a4 = ((global_a4_side_counter + num_weeks_in_signature - 1) // 2) + 1
         
-        # Page numbers restart for each signature
-        # Each physical page has 2 sides (left and right), so divide by 2
-        for side_number, page in enumerate(signature):
-            # Calculate physical page number (0-based): each physical page = 2 sides
-            # side_number 0,1 -> page 0; side_number 2,3 -> page 1; etc.
-            physical_page_number_0based = side_number // 2
+        # Render each week (each week = 1 div id="page" = 1 A4 sheet side)
+        for week_index, week_data in enumerate(signature):
+            # Calculate physical page number within signature (0-based)
+            # Each pair of weeks = 1 physical page in the book
+            physical_page_number_0based = week_index // 2
             
-            # Calculate A4 sheet number within this signature
-            # Each pair of consecutive pages in signature = 1 A4 sheet
-            # Pages are in bookbinding order, so side_number 0,1 = A4 sheet 1, etc.
-            a4_sheet_in_signature = (side_number // 2) + 1  # 1-based within signature
-            a4_sheet_global = global_a4_sheet_counter + a4_sheet_in_signature
+            # Calculate A4 sheet side number (each div id="page" = 1 A4 sheet side)
+            a4_side_number = global_a4_side_counter + 1  # 1-based
+            # Calculate A4 sheet number (2 sides = 1 A4 sheet)
+            a4_sheet_number = (global_a4_side_counter // 2) + 1  # 1-based
             
-            if page['is_left']:
-                # Render left page with week content
-                templated_week = week_template.render(
-                    days=page['days'], 
-                    month=page['month'], 
-                    year=page['year'],
-                    signature_number=signature_number,
-                    page_number=physical_page_number_0based,  # 0-based, template adds 1 for display
-                    a4_sheet_number=a4_sheet_global,
-                    signature_a4_range=f"{signature_start_a4}-{signature_end_a4}"
-                )
-                all_pages_content += templated_week
-            else:
-                # Render empty right page with page info
-                # Template adds 1, so physical_page_number_0based + 1 = actual page number
-                empty_page = f"""<div id="page">
-    <div class="page-info rubik-regular">
-        S{signature_number + 1} P{physical_page_number_0based + 1} A4:{a4_sheet_global} (S{signature_number + 1}: A4 {signature_start_a4}-{signature_end_a4})
-    </div>
-</div>"""
-                all_pages_content += empty_page
-        
-        # Update global counter after processing all pages in this signature
-        global_a4_sheet_counter += pages_per_signature
+            # Render week - each week.jinja render = 1 div id="page" = 1 A4 sheet side
+            templated_week = week_template.render(
+                days=week_data['days'], 
+                month=week_data['month'], 
+                year=week_data['year'],
+                signature_number=signature_number,
+                page_number=physical_page_number_0based,  # 0-based, template adds 1 for display
+                a4_sheet_number=a4_sheet_number,
+                a4_side_number=a4_side_number,
+                signature_a4_range=f"{signature_start_a4}-{signature_end_a4}"
+            )
+            all_pages_content += templated_week
+            
+            global_a4_side_counter += 1
     
     full_page = wrapper_template.render(content=all_pages_content)
     
@@ -166,24 +155,20 @@ def output_signatures_as_single_page(signatures):
 def generate_signatures_for_a5_print(months, pages_per_signature=5):
     """
     input: months in the structure generated by generate_data_structure_for_full_year()
-    output: list of signatures, where each signature is a list of page data dicts
+    output: list of signatures, where each signature is a list of week data dicts
 
-    Generate signatures for A5 print with the following constraints:
-    - a "signature" in this context is a set of pages that are sewn together for bookbinding
-    - the week lines are on the left of a double page, the right side is empty
-    - the weeks start on the first double page
-    - the calendar is double-sided, so the first page of a signature is the left page of a double page
+    Generate signatures for A5 print with double-sided printing:
+    - Each week = 1 A4 sheet side (1 div id="page")
+    - Calendar is double-sided: each A4 sheet has 2 weeks (front + back)
+    - Weeks are arranged in bookbinding order so they pair correctly when printed
     
     Each page data dict contains:
-    - 'is_left': bool - True if left page (with week content), False if right page (empty)
-    - 'days': list - week data (only present if is_left is True) - matches template expectation
-    - 'month': dict - month data (only present if is_left is True)
-    - 'year': int - year (only present if is_left is True)
+    - 'days': list - week data - matches template expectation
+    - 'month': dict - month data
+    - 'year': int - year
     
-    For left pages, the dict can be passed directly to week_template.render() as:
+    The dict can be passed directly to week_template.render() as:
         week_template.render(days=page['days'], month=page['month'], year=page['year'])
-    
-    For right pages (is_left=False), these are empty and should be skipped or handled separately.
     """
     # Flatten all weeks from all months with their context
     all_weeks = []
@@ -195,44 +180,77 @@ def generate_signatures_for_a5_print(months, pages_per_signature=5):
                 "year": 2026
             })
     
-    # Calculate total number of physical pages needed
-    # Each week takes one left page, and each left page has a corresponding empty right page
-    total_weeks = len(all_weeks)
-    total_physical_pages = total_weeks  # One physical page per week (left side only)
-    
-    # Group pages into signatures
+    # Group weeks into signatures
     signatures = []
     week_index = 0
     
-    while week_index < total_weeks:
-        signature = []
-        pages_in_signature = 0
-        
-        # Create pages for this signature
-        while pages_in_signature < pages_per_signature and week_index < total_weeks:
-            # Add left page with week content (using 'days' to match template)
-            signature.append({
-                "is_left": True,
-                "days": all_weeks[week_index]["days"],
-                "month": all_weeks[week_index]["month"],
-                "year": all_weeks[week_index]["year"]
-            })
-            
-            # Add right page (empty)
-            signature.append({
-                "is_left": False
-            })
-            
+    while week_index < len(all_weeks):
+        # Collect weeks for this signature
+        signature_weeks = []
+        while len(signature_weeks) < pages_per_signature and week_index < len(all_weeks):
+            signature_weeks.append(all_weeks[week_index])
             week_index += 1
-            pages_in_signature += 1
         
-        # Arrange pages in bookbinding order for printing
-        # For a signature with N pages (2N sides), the print order is:
-        # [2N, 1, 2, 2N-1, 2N-2, 3, 4, 2N-3, 2N-4, 5, ...]
-        arranged_signature = _arrange_pages_for_bookbinding(signature)
+        # Arrange weeks in bookbinding order for double-sided printing
+        # For N weeks, arrange as: [N, 1, 2, N-1, N-2, 3, 4, N-3, ...]
+        # This pairs weeks so that when printed double-sided:
+        # Sheet 1: Week N (front), Week 1 (back)
+        # Sheet 2: Week 2 (front), Week N-1 (back)
+        # etc.
+        arranged_signature = _arrange_weeks_for_bookbinding(signature_weeks)
         signatures.append(arranged_signature)
     
     return signatures
+
+
+def _arrange_weeks_for_bookbinding(weeks):
+    """
+    Arrange weeks in bookbinding order for double-sided printing.
+    
+    For N weeks, arrange them so that when printed double-sided, they pair correctly:
+    - Sheet 1: Week N (front), Week 1 (back)
+    - Sheet 2: Week 2 (front), Week N-1 (back)
+    - Sheet 3: Week N-2 (front), Week 3 (back)
+    - etc.
+    
+    This creates the pattern: [N, 1, 2, N-1, N-2, 3, 4, N-3, ...]
+    
+    Args:
+        weeks: List of week data dicts in reading order (index 0 = first week, etc.)
+        
+    Returns:
+        List of week data dicts in print order
+    """
+    num_weeks = len(weeks)
+    if num_weeks == 0:
+        return []
+    
+    arranged = []
+    num_sheets = (num_weeks + 1) // 2  # Number of A4 sheets needed
+    
+    # Arrange weeks following bookbinding pattern
+    for i in range(num_sheets):
+        # Index from the start (working forwards: 0, 1, 2, ...)
+        start_index = i
+        # Index from the end (working backwards: N-1, N-2, N-3, ...)
+        end_index = num_weeks - 1 - i
+        
+        if i % 2 == 0:
+            # Even sheets: end week, then start week
+            # This pairs: Week N with Week 1, Week N-2 with Week 3, etc.
+            if end_index >= 0 and end_index < num_weeks:
+                arranged.append(weeks[end_index])
+            if start_index < num_weeks and start_index != end_index:
+                arranged.append(weeks[start_index])
+        else:
+            # Odd sheets: start week, then end week
+            # This pairs: Week 2 with Week N-1, Week 4 with Week N-3, etc.
+            if start_index < num_weeks:
+                arranged.append(weeks[start_index])
+            if end_index >= 0 and end_index < num_weeks and start_index != end_index:
+                arranged.append(weeks[end_index])
+    
+    return arranged
 
 
 def _arrange_pages_for_bookbinding(pages):
