@@ -42,7 +42,6 @@ def print_and_dump(months):
         json.dump(months, f, default=str, indent=4)
     exit(0)
 
-#print_and_dump(months)
 
 # render and print pages
 def load_template(template_name):
@@ -84,21 +83,6 @@ def output_as_separate_pages(months):
             style_path = os.path.join("templates", "style.css")
             HTML(string=templated_page) \
             .write_pdf(f"output/pdf/{filename}.pdf", pdf_variant="pdf/x-3", stylesheets=[style_path])
-
-def output_as_single_page(months):
-    all_pages_content = ""
-    for month_number, month in enumerate(months):
-        for week_number_in_month, page in enumerate(month["weeks"]):
-            print(page)
-
-            # render templates with variables
-            templated_week = WEEK_TEMPLATE.render(days=page, month=month, year = YEAR)
-            all_pages_content += templated_week
-
-    full_page = WRAPPER_TEMPLATE.render(content=all_pages_content)
-
-    with open(f"output/html/full_year.html", "w") as f:
-        f.write(full_page)
 
 
 def output_signatures_as_single_page(signatures):
