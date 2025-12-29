@@ -1,15 +1,15 @@
-<div id="page">
-    <div id="tiskovy-obrazec">
-        <div class="header">
-            <div class="header-text rubik-regular">{{ month.name_cz | upper }} {{ year }}</div>
+<div class="page-editable page">
+    <div class="tiskovy-obrazec">
+        <div class="header-editable">
+            <div class="header-text-editable header-text-font-editable">{{ month.name_cz | upper }} {{ year }}</div>
         </div>
         {% for day in days %}
-        <div class="date-row">
-            <div class="number-block">
-                <div class="number rubik-glitch-regular">{{ day.day_number }}</div>
-                <div class="day-cz rubik-regular">{{ day.day_cz }}</div>
+        <div class="date-row-editable date-row">
+            <div class="number-block number-block-editable">
+                <div class="number-block-number-editable number-block-number-font-editable">{{ day.day_number }}</div>
+                <div class="day-cz-editable day-cz-font-editable">{{ day.day_cz }}</div>
             </div>
-            <div class="bottom-line"></div>
+            <div class="bottom-line bottom-line-editable"></div>
         </div>
         {% endfor %}
     </div>
