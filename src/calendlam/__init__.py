@@ -6,8 +6,8 @@ import os
 # generate data structure for year
 def generate_data_structure_for_full_year(months_cz, months_en, days_cz, days_en):
     months = []
-    current_date = year_start
-    while(current_date <= year_end):
+    current_date = YEAR_START
+    while(current_date <= YEAR_END):
         month = {
             "name_cz": months_cz[current_date.month - 1],
             "name_en": months_en[current_date.month - 1],
@@ -15,7 +15,7 @@ def generate_data_structure_for_full_year(months_cz, months_en, days_cz, days_en
         }
 
         this_month = current_date.month
-        while(current_date.month == this_month and current_date <= year_end):
+        while(current_date.month == this_month and current_date <= YEAR_END):
             week = []
             for _ in range(7):
                 week.append({
@@ -25,7 +25,7 @@ def generate_data_structure_for_full_year(months_cz, months_en, days_cz, days_en
                     "day_en": days_en[current_date.weekday()],
                 })
                 current_date += dt.timedelta(days=1)
-                if(current_date.month != this_month or current_date == year_end):
+                if(current_date.month != this_month or current_date == YEAR_END):
                     break
 
             month["weeks"].append(week)
@@ -63,8 +63,8 @@ def output_as_separate_pages(months):
             print(page)
 
             # render templates with variables
-            templated_week = week_template.render(days=page, month=month, year = 2026)
-            templated_page = wrapper_template.render(content=templated_week)
+            templated_week = WEEK_TEMPLATE.render(days=page, month=month, year = YEAR)
+            templated_page = WRAPPER_TEMPLATE.render(content=templated_week)
             
             # define output filename based on month and week number
             filename = f"page_{month_number+1:03d}_{week_number_in_month+1:03d}"
@@ -92,10 +92,10 @@ def output_as_single_page(months):
             print(page)
 
             # render templates with variables
-            templated_week = week_template.render(days=page, month=month, year = 2026)
+            templated_week = WEEK_TEMPLATE.render(days=page, month=month, year = YEAR)
             all_pages_content += templated_week
 
-    full_page = wrapper_template.render(content=all_pages_content)
+    full_page = WRAPPER_TEMPLATE.render(content=all_pages_content)
 
     with open(f"output/html/full_year.html", "w") as f:
         f.write(full_page)
@@ -132,7 +132,7 @@ def output_signatures_as_single_page(signatures):
             a4_sheet_number = (global_a4_side_counter // 2) + 1  # 1-based
             
             # Render week - each week.jinja render = 1 div id="page" = 1 A4 sheet side
-            templated_week = week_template.render(
+            templated_week = WEEK_TEMPLATE.render(
                 days=week_data['days'], 
                 month=week_data['month'], 
                 year=week_data['year'],
@@ -146,7 +146,7 @@ def output_signatures_as_single_page(signatures):
             
             global_a4_side_counter += 1
     
-    full_page = wrapper_template.render(content=all_pages_content)
+    full_page = WRAPPER_TEMPLATE.render(content=all_pages_content)
     
     with open("output/html/full_year_signatures.html", "w") as f:
         f.write(full_page)
@@ -167,8 +167,8 @@ def generate_signatures_for_a5_print(months, pages_per_signature=5):
     - 'month': dict - month data
     - 'year': int - year
     
-    The dict can be passed directly to week_template.render() as:
-        week_template.render(days=page['days'], month=page['month'], year=page['year'])
+    The dict can be passed directly to WEEK_TEMPLATE.render() as:
+        WEEK_TEMPLATE.render(days=page['days'], month=page['month'], year=page['year'])
     """
     # Flatten all weeks from all months with their context
     all_weeks = []
@@ -177,7 +177,7 @@ def generate_signatures_for_a5_print(months, pages_per_signature=5):
             all_weeks.append({
                 "days": week,  # Use 'days' to match template expectation
                 "month": month,
-                "year": 2026
+                "year": YEAR
             })
     
     # Group weeks into signatures
@@ -312,23 +312,23 @@ def _arrange_pages_for_bookbinding(pages):
     
     return arranged
 
-# init dates
-year_start = dt.date(2026, 1, 1)
-year_end = dt.date(2026, 12, 31)
+# Constants
+YEAR = 2026
+YEAR_START = dt.date(YEAR, 1, 1)
+YEAR_END = dt.date(YEAR, 12, 31)
 
 
-# define day and month names
-days_en = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-days_cz = ["pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle"]
-months_en = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
-months_cz = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"]
+DAYS_EN = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+DAYS_CZ = ["pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle"]
+MONTHS_EN = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+MONTHS_CZ = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"]
 
-wrapper_template = load_template("wrapper.jinja")
-week_template = load_template("week.jinja")
+WRAPPER_TEMPLATE = load_template("wrapper.jinja")
+WEEK_TEMPLATE = load_template("week.jinja")
 # copy style.css to output/html
 copy_css_to_output()
 
-months = generate_data_structure_for_full_year(months_cz, months_en, days_cz, days_en)
+months = generate_data_structure_for_full_year(MONTHS_CZ, MONTHS_EN, DAYS_CZ, DAYS_EN)
 
 signatures = generate_signatures_for_a5_print(months, pages_per_signature=5)
 
