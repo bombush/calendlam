@@ -19,7 +19,7 @@
     }
 
     .page-editable {
-        border: 1px solid black;
+        border: 1px solid white;
         width:115mm;
         height:195mm;
         background-color: white;
@@ -130,9 +130,8 @@
     }
 
     .tiskovy-obrazec {
-        background-color: lightgray;
-        height: 175mm;
-        width: 95mm;
+        /*height: 175mm;*/
+        /*width: 95mm;*/
         /*border: 1px solid black;*/
         margin-left:10mm;
         margin-top:10mm;
