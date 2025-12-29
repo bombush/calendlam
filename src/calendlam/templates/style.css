@@ -9,26 +9,31 @@
         margin: 0;
         padding: 0;
     }
+
+    
+    html {
+        font-size: 10pt; /* Base font-size for em scaling. This controls the overall scaling of the page */
+    }
     
     /* real CSS starts here 
     you can edit any CSS below which are marked as "editable"
     */
     @page {
         size: A4 landscape;
-        margin: 4mm; /* <- @roza: edit margin according to the margins needed for printing */
+        margin: 4mm /* margin of the physical print area. modify according to your printer using trial and error :) */
     }
 
     .page-editable {
         border: 1px solid white;
-        width:115mm;
-        height:195mm;
+        width: 32.61em; /* 115mm */
+        height: 55.31em; /* 195mm */
         background-color: white;
     }
 
 
     .bottom-line-editable {
-        border-bottom: 0.1mm dotted #999;
-        width: calc(100% - 5mm);
+        border-bottom: 0.02835em dotted #999; /* 0.1mm */
+        width: calc(100% - 1.417em); /* 5mm */
     }
 
     .header-editable {
@@ -36,13 +41,13 @@
         background-color: white;
         text-align: left;
         font-weight: bold;
-        font-size: 10pt;
+        font-size: 1em; /* 10pt */
         color: black;
-        border-bottom: 1mm solid black;
+        border-bottom: 0.2835em solid black; /* 1mm */
     }
     .header-text-editable {
-        margin-left: 0mm;
-        margin-bottom: 2mm;
+        margin-left: 0em; /* 0mm */
+        margin-bottom: 0.567em; /* 2mm */
     }
     .header-text-font-editable {
         font-family: "Rubik", sans-serif;
@@ -54,22 +59,22 @@
 
     .date-row-editable {
         width:100%;
-        height:24mm;
-        border-bottom: 0.5mm solid black;
+        height: 6.8em; /* 24mm */
+        border-bottom: 0.14175em solid black; /* 0.5mm */
         background-color: white;
     }
 
 
     .number-block-editable {
         color:black;
-        margin-left: 0mm;
-        margin-right:5mm;
-        width: 15mm;
-        height: 15mm;
+        margin-left: 0em; /* 0mm */
+        margin-right: 1.417em; /* 5mm */
+        width: 4.25em; /* 15mm */
+        height: 4.25em; /* 15mm */
     }
 
     .number-block-number-editable {
-        font-size: 12mm;
+        font-size: 3.4em; /* 12mm */
         color:black
     }
 
@@ -80,8 +85,8 @@
     }
 
     .day-cz-editable {
-        font-size: 3mm;
-        margin-top: -1mm;
+        font-size: 0.85em; /* 3mm */
+        margin-top: -0.2835em; /* -1mm */
     }
 
     .day-cz-font-editable {
@@ -101,13 +106,13 @@
 
     .page-info {
         position: absolute;
-        bottom: 2mm;
-        right: 2mm;
-        font-size: 6pt;
+        bottom: 0.567em; /* 2mm */
+        right: 0.567em; /* 2mm */
+        font-size: 0.6em; /* 6pt */
         color: #666;
         background-color: rgba(255, 255, 255, 0.8);
-        padding: 1mm 2mm;
-        border-radius: 2mm;
+        padding: 0.2835em 0.567em; /* 1mm 2mm */
+        border-radius: 0.567em; /* 2mm */
     }
 
     .sekuya-regular {
@@ -133,12 +138,12 @@
         /*height: 175mm;*/
         /*width: 95mm;*/
         /*border: 1px solid black;*/
-        margin-left:10mm;
-        margin-top:10mm;
+        margin-left: 2.835em; /* 10mm */
+        margin-top: 2.835em; /* 10mm */
     }
 
     .bottom-line {
-        height: 0mm;
+        height: 0em; /* 0mm */
     }
 
     .rubik-regular {
