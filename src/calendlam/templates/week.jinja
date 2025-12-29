@@ -13,4 +13,9 @@
         </div>
         {% endfor %}
     </div>
+    {% if signature_number is defined and page_number is defined %}
+    <div class="page-info rubik-regular">
+        S{{ signature_number|default(0) + 1 }} P{{ page_number|default(0) + 1 }}{% if a4_sheet_number is defined %} A4:{{ a4_sheet_number }}{% endif %}{% if signature_a4_range is defined %} (S{{ signature_number|default(0) + 1 }}: A4 {{ signature_a4_range }}){% endif %}
+    </div>
+    {% endif %}
 </div>

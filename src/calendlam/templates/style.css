@@ -40,6 +40,7 @@
         height:195mm;
         background-color: white;
         break-after: page;
+        position: relative;
     }
     #tiskovy-obrazec {
         background-color: lightgray;
@@ -99,4 +100,15 @@
         font-optical-sizing: auto;
         font-weight: 400;
         font-style: normal;
+    }
+
+    .page-info {
+        position: absolute;
+        bottom: 2mm;
+        right: 2mm;
+        font-size: 6pt;
+        color: #666;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 1mm 2mm;
+        border-radius: 2mm;
     }
