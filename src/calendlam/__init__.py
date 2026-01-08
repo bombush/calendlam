@@ -320,7 +320,8 @@ def months_to_pages(months):
         "month" : { "name_cz" : "", "name_en": ""},
         "days" : [],
         "signature_number": None,
-        "page_in_signature_number": None
+        "page_in_signature_number": None,
+        "empty" : False
     }
 
     # generate a flat array of all days
@@ -355,12 +356,26 @@ def months_to_pages(months):
 
 
 def pages_to_signatures(sheets_per_signature : int, pages : list):
+    """
+    Rearrange pages so that they are in the correct sequence for
+    double-sided printing and grouping in bookbinding signatures.
+
+    @param sheets_per_signature how many sheets of paper will be folded and bound together
+    """
+    pages = pages
+
     # two pages per sheet
     pages_per_signature = sheets_per_signature * 2
 
+    # pad with empty pages
+    empty_pages = pages_per_signature - (len(pages) % pages_per_signature)
+    if (empty_pages):
+        for i in range(0,empty_pages):
+            page = page
+            page.empty = True
+            pages.append(page)
+
     # @TODO: write correct print grouping here
-
-
 
 
 
