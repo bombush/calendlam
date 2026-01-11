@@ -171,7 +171,7 @@ def rearrange_pages_in_signature(pages : list, singature_metadata_number : int):
 
     return signature_pages
 
-def rearrange_pages_into_signatures(sheets_per_signature : int, pages : list):
+def rearrange_pages_for_printing(sheets_per_signature : int, pages : list):
     """
     Rearrange pages so that signatures can be bound together.
     We want to group pages into signatures so that when folded and bound, they read correctly.
@@ -233,7 +233,7 @@ months = generate_months_for_full_year(MONTHS_CZ, MONTHS_EN, DAYS_CZ, DAYS_EN)
 #print_and_dump(months, 'months')
 pages = months_to_pages(months)
 #print_and_dump(pages, 'pages')
-rearranged_pages = rearrange_pages_into_signatures(sheets_per_signature=SHEETS_PER_SIGNATURE, pages=pages)
+rearranged_pages = rearrange_pages_for_printing(sheets_per_signature=SHEETS_PER_SIGNATURE, pages=pages)
 #print_and_dump(signatures, 'signatures')
 html = render_pages_as_single_document(rearranged_pages)
 output_html_to_file(html, filename="full_year_signatures", sheets_per_signature=SHEETS_PER_SIGNATURE)
