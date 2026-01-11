@@ -215,7 +215,7 @@ printed in double-sided format and folded together into signatures.
 YEAR = 2026
 YEAR_START = dt.date(YEAR, 1, 1)
 YEAR_END = dt.date(YEAR, 12, 31)
-SHEETS_PER_SIGNATURE = 3
+SHEETS_PER_SIGNATURE = 5
 
 DAYS_EN = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 DAYS_CZ = ["pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle"]
