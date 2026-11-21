@@ -7,12 +7,14 @@ Alpine.js frontend in static/, which shows it in a scrollable iframe and prints 
 Run from the repository root:
     uvicorn calendlam3.app:app --reload
 """
+import json
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -46,6 +48,58 @@ FONTS = [
 LineStyle = Literal["solid", "dotted", "dashed", "none"]  # keep in sync with calendlam.LINE_STYLES
 
 app = FastAPI(title="Calendlam")
+
+
+# --- saved settings: every save is a new JSON file, so older versions stay available ---
+SETTINGS_DIR = Path(__file__).resolve().parent / "saves"
+SAVE_ID = re.compile(r"^[0-9A-Za-z_-]{1,100}$")  # file stem; also blocks path traversal
+MAX_SETTINGS_BYTES = 20_000
+
+
+def _save_path(save_id: str) -> Path:
+    if not SAVE_ID.match(save_id):
+        raise HTTPException(status_code=404, detail="no such save")
+    return SETTINGS_DIR / f"{save_id}.json"
+
+
+@app.get("/api/settings")
+def list_settings():
+    """Saved versions, newest first."""
+    saves = []
+    for path in sorted(SETTINGS_DIR.glob("*.json"), reverse=True) if SETTINGS_DIR.is_dir() else []:
+        try:
+            data = json.loads(path.read_text())
+        except (OSError, ValueError):
+            continue  # skip unreadable/corrupt files
+        saves.append({"id": path.stem, "name": data.get("name", ""), "saved_at": data.get("saved_at", "")})
+    return saves
+
+
+@app.get("/api/settings/{save_id}")
+def get_settings(save_id: str):
+    path = _save_path(save_id)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="no such save")
+    return json.loads(path.read_text())
+
+
+@app.post("/api/settings")
+def save_settings(payload: dict = Body(...)):
+    """Write the posted settings to a NEW file; returns its id."""
+    settings = payload.get("settings")
+    name = str(payload.get("name") or "").strip()[:60]
+    if not isinstance(settings, dict):
+        raise HTTPException(status_code=422, detail="settings must be an object")
+    now = datetime.now()
+    document = {"name": name, "saved_at": now.isoformat(timespec="seconds"), "settings": settings}
+    text = json.dumps(document, indent=2, ensure_ascii=False)
+    if len(text.encode()) > MAX_SETTINGS_BYTES:
+        raise HTTPException(status_code=413, detail="settings too large")
+    slug = re.sub(r"[^0-9A-Za-z]+", "-", name).strip("-").lower()[:40]
+    save_id = now.strftime("%Y%m%d-%H%M%S-%f") + (f"_{slug}" if slug else "")
+    SETTINGS_DIR.mkdir(exist_ok=True)
+    (SETTINGS_DIR / f"{save_id}.json").write_text(text)  # unique timestamp: never overwrites
+    return {"id": save_id, "name": name, "saved_at": document["saved_at"]}
 
 
 @app.get("/api/fonts")

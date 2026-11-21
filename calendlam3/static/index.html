@@ -7,9 +7,11 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: Arial, sans-serif; background: #e5e7eb; }
-    .toolbar { display: flex; align-items: center; gap: 1.25rem; padding: .6rem 1rem; background: #1f2937; color: #fff; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.25rem; padding: .6rem 1rem; background: #1f2937; color: #fff; }
     .toolbar h1 { font-size: 1.1rem; margin: 0 auto 0 0; }
     .toolbar input[type=number] { width: 5rem; padding: .25rem; }
+    .save-btn { padding: .45rem 1rem; background: #059669; color: #fff; border: 0; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+    .msg { font-size: .85rem; opacity: .8; min-width: 6rem; }
     .print-btn { padding: .45rem 1.2rem; background: #2563eb; color: #fff; border: 0; border-radius: 4px; font-size: 1rem; cursor: pointer; }
     .print-btn:disabled { opacity: .5; cursor: default; }
     .toolbar.sub { padding: .35rem 1rem; background: #374151; font-size: .9rem; }
@@ -36,6 +38,15 @@
       <input type="range" min="0.3" max="1.5" step="0.05" x-model.number="zoom">
       <span x-text="Math.round(zoom * 100) + '%'"></span>
     </label>
+    <label>Settings
+      <select x-model="selectedSave" @change="loadSave(selectedSave)">
+        <option value="">— saved versions —</option>
+        <template x-for="sv in saves" :key="sv.id"><option :value="sv.id" x-text="(sv.name || 'unnamed') + ' · ' + sv.saved_at.replace('T', ' ')"></option></template>
+      </select>
+    </label>
+    <input type="text" x-model="saveName" placeholder="version name" maxlength="60" style="width: 9rem">
+    <button class="save-btn" @click="save()">Save</button>
+    <span class="msg" x-text="message"></span>
     <button class="print-btn" @click="print()" :disabled="!loaded">Print</button>
   </header>
   <div class="toolbar sub">
@@ -52,7 +63,7 @@
   </div>
 
   <!-- the preview subwindow: scrolls on its own -->
-  <iframe x-ref="frame" :src="src" @load="loaded = true; applyZoom(); applyLines()" title="Calendar preview"></iframe>
+  <iframe x-ref="frame" :src="src" @load="if (src) { loaded = true; applyZoom(); applyLines() }" title="Calendar preview"></iframe>
 
   <script>
     function calendar() {
@@ -70,8 +81,54 @@
           { key: 'mid', label: 'Middle', value: 0.1, style: 'dotted' },
           { key: 'q3', label: '3/4', value: 0.05, style: 'dotted' },
         ],
-        src: '/render?year=2026&sheets=5&number_font=Cinzel&day_font=Rubik&month_font=Rubik',
-        async init() { this.fonts = await (await fetch('/api/fonts')).json(); },
+        src: '', saves: [], selectedSave: '', saveName: '', message: '',
+        async init() {
+          this.fonts = await (await fetch('/api/fonts')).json();
+          await this.refreshSaves();
+          if (this.saves.length) await this.loadSave(this.saves[0].id);  // remember: start from the latest save
+          else this.reload();
+        },
+        async refreshSaves() {
+          try { this.saves = await (await fetch('/api/settings')).json(); } catch (e) { this.saves = []; }
+        },
+        snapshot() {
+          return {
+            year: this.year, sheets: this.sheets, zoom: this.zoom,
+            fonts: Object.fromEntries(this.pickers.map(p => [p.key, p.value])),
+            lines: Object.fromEntries(this.lines.map(l => [l.key, { value: l.value, style: l.style }])),
+          };
+        },
+        applySettings(st) {  // only known keys, validated, so old/odd saves can't break the page
+          const num = (v, lo, hi, d) => (typeof v === 'number' && v >= lo && v <= hi) ? v : d;
+          this.year = num(st.year, 1, 9999, this.year);
+          this.sheets = num(st.sheets, 1, 50, this.sheets);
+          this.zoom = num(st.zoom, 0.3, 1.5, this.zoom);
+          this.pickers.forEach(p => { const f = (st.fonts || {})[p.key]; if (this.fonts.includes(f)) p.value = f; });
+          this.lines.forEach(l => {
+            const v = (st.lines || {})[l.key] || {};
+            l.value = num(v.value, 0, 1, l.value);
+            if (this.lineStyles.includes(v.style)) l.style = v.style;
+          });
+        },
+        async loadSave(id) {
+          if (!id) return;
+          try {
+            const doc = await (await fetch(`/api/settings/${encodeURIComponent(id)}`)).json();
+            this.applySettings(doc.settings || {});
+            this.selectedSave = id; this.saveName = doc.name || '';
+            this.message = 'Loaded'; this.reload();
+          } catch (e) { this.message = 'Load failed'; this.reload(); }
+        },
+        async save() {
+          try {
+            const r = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: this.saveName, settings: this.snapshot() }) });
+            if (!r.ok) throw new Error(r.status);
+            const saved = await r.json();
+            await this.refreshSaves();
+            this.selectedSave = saved.id; this.message = 'Saved';
+          } catch (e) { this.message = 'Save failed'; }
+        },
         reload() { this.loaded = false; const fonts = this.pickers.map(p => `&${p.key}=${encodeURIComponent(p.value)}`).join('')
             + this.lines.map(l => `&line_${l.key}=${l.value}&style_${l.key}=${l.style}`).join('');
           this.src = `/render?year=${this.year}&sheets=${this.sheets}${fonts}&_=${Date.now()}`; },
