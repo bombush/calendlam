@@ -31,8 +31,8 @@ FONT_TARGETS = {
 # thickness overrides (in mm) accepted for the lines on each day
 LINE_NAMES = ("header", "row", "mid", "q1", "q3")
 LINE_STYLES = ("solid", "dotted", "dashed", "none")
-# layout overrides (in mm): gap left of the day area, and how far lines stretch right (to the fold by default)
-LAYOUT_NAMES = ("margin-left", "extend-right")
+# layout overrides (in mm): height of a day, gap left of the day area, and how far lines stretch right (to the fold by default)
+LAYOUT_NAMES = ("row-height", "margin-left", "extend-right")
 
 _jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
 WRAPPER_TEMPLATE = _jinja_env.get_template("wrapper.jinja")

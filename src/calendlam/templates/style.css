@@ -34,6 +34,7 @@
     /* line thicknesses; the preview app overrides these (--line-*) */
     :root {
         /* layout of the day area on a week page */
+        --layout-row-height: 24mm;    /* height of one day (distance between the solid lines) */
         --layout-margin-left: 5mm;    /* gap left of the day area */
         --layout-extend-right: 14.75mm; /* how far lines stretch past the page's right edge; 14.75mm = to the fold,
                                           because the 115mm page is centred in its 144.5mm half of the sheet */
@@ -78,7 +79,7 @@
 
     .date-row-editable {
         width:100%;
-        height: 6.8em; /* 24mm */
+        height: var(--layout-row-height);
         border-bottom: var(--line-row) var(--line-row-style) black;
         background-color: white;
         position: relative;
@@ -132,6 +133,10 @@
     /* The styles below should not be edited if you are not sure what you are doing */
     .page {
         position: relative;
+        /* keep the header + days block vertically centred on the page, whatever --layout-row-height is */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     /* one A4 landscape sheet side = two A5 book pages, one per half (fold line in the middle) */
@@ -183,7 +188,6 @@
         /*border: 1px solid black;*/
         margin-left: var(--layout-margin-left);
         margin-right: calc(-1 * var(--layout-extend-right)); /* negative: the day area (and its lines) grows to the right */
-        margin-top: 2.835em; /* 10mm */
     }
 
     .bottom-line {

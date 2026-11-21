@@ -120,6 +120,7 @@ def render(
     line_mid: float | None = Query(None, ge=0, le=3),
     line_q1: float | None = Query(None, ge=0, le=3),
     line_q3: float | None = Query(None, ge=0, le=3),
+    row_height: float | None = Query(None, ge=5, le=40),
     margin_left: float | None = Query(None, ge=0, le=30),
     extend_right: float | None = Query(None, ge=0, le=30),
     style_header: LineStyle | None = None,
@@ -136,7 +137,7 @@ def render(
     html = calendlam.render_year_html(
         year, sheets, info, fonts,
         lines={"header": line_header, "row": line_row, "mid": line_mid, "q1": line_q1, "q3": line_q3},
-        layout={"margin-left": margin_left, "extend-right": extend_right},
+        layout={"row-height": row_height, "margin-left": margin_left, "extend-right": extend_right},
         line_styles={"header": style_header, "row": style_row, "mid": style_mid, "q1": style_q1, "q3": style_q3})
     css = (calendlam.TEMPLATES_DIR / "style.css").read_text()
     html = re.sub(r'<link rel="stylesheet" href="style.css">',

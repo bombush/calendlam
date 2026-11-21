@@ -65,7 +65,7 @@
     <span>Layout (mm)</span>
     <template x-for="l in layout" :key="l.key">
       <label><span x-text="l.label"></span>
-        <input type="range" min="0" :max="l.max" step="0.25" x-model.number="l.value" @input="applyLines()">
+        <input type="range" :min="l.min ?? 0" :max="l.max" step="0.25" x-model.number="l.value" @input="applyLines()">
         <span class="val" x-text="l.value.toFixed(2)"></span>
       </label>
     </template>
@@ -84,6 +84,7 @@
           { key: 'month_font', label: 'Month font', value: 'Rubik' },
         ],
         layout: [
+          { key: 'row_height', css: '--layout-row-height', label: 'Day height', value: 24, min: 15, max: 26 },
           { key: 'margin_left', css: '--layout-margin-left', label: 'Left margin', value: 5, max: 20 },
           { key: 'extend_right', css: '--layout-extend-right', label: 'Stretch right (14.75 = to fold)', value: 14.75, max: 14.75 },
         ],
@@ -119,7 +120,7 @@
           this.sheets = num(st.sheets, 1, 50, this.sheets);
           this.zoom = num(st.zoom, 0.3, 1.5, this.zoom);
           this.pickers.forEach(p => { const f = (st.fonts || {})[p.key]; if (this.fonts.includes(f)) p.value = f; });
-          this.layout.forEach(l => { l.value = num((st.layout || {})[l.key], 0, l.max, l.value); });
+          this.layout.forEach(l => { l.value = num((st.layout || {})[l.key], l.min ?? 0, l.max, l.value); });
           this.lines.forEach(l => {
             const v = (st.lines || {})[l.key] || {};
             l.value = num(v.value, 0, l.max, l.value);
