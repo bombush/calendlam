@@ -35,6 +35,7 @@
     :root {
         /* layout of the day area on a week page */
         --layout-row-height: 24mm;    /* height of one day (distance between the solid lines) */
+        --layout-overview-row-height: 5.5mm; /* one day on the month overview pages (31 rows must fit the page) */
         --layout-margin-left: 5mm;    /* gap left of the day area */
         --layout-extend-right: 14.75mm; /* how far lines stretch past the page's right edge; 14.75mm = to the fold,
                                           because the 115mm page is centred in its 144.5mm half of the sheet */
@@ -189,6 +190,27 @@
         margin-left: var(--layout-margin-left);
         margin-right: calc(-1 * var(--layout-extend-right)); /* negative: the day area (and its lines) grows to the right */
     }
+
+    /* month overview page: three month columns, one row per day */
+    .months-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 5mm;
+        margin: 0 5mm;
+        align-items: start;
+    }
+
+    .month-row {
+        display: flex;
+        align-items: baseline;
+        gap: 1.5mm;
+        height: var(--layout-overview-row-height);
+        border-bottom: var(--line-row) var(--line-row-style) black;
+        font-size: 1em;
+    }
+
+    .month-row-number { width: 2em; }
+    .month-row-day { font-size: 0.8em; }
 
     .bottom-line {
         height: 0em; /* 0mm */

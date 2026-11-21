@@ -16,6 +16,22 @@
         </div>
         {% endfor %}
     </div>
+    {% elif kind == "months" %}
+    <div class="months-grid">
+        {% for month in months %}
+        <div class="month-col">
+            <div class="header-editable">
+                <div class="header-text-editable header-text-font-editable">{{ month.header | upper }}</div>
+            </div>
+            {% for day in month.days %}
+            <div class="month-row">
+                <span class="month-row-number number-block-number-font-editable">{{ day.day_number }}</span>
+                <span class="month-row-day day-cz-font-editable">{{ day.day_abbr }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
     {% endif %}
     {% if info %}
     <div class="page-info rubik-regular">{{ info }}</div>
