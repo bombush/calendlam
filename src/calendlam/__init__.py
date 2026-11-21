@@ -1,18 +1,21 @@
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
-
 import datetime as dt
-import copy
 import os
+from pathlib import Path
+
+PACKAGE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = PACKAGE_DIR / "templates"
+OUTPUT_DIR = PACKAGE_DIR / "output"
 
 # generate data structure for year
-def generate_months_for_full_year(months_cz, months_en, days_cz, days_en):
+def generate_months_for_full_year(months_cz, months_en, days_cz, days_en, year):
     """
     Generate a data structure for a full year of a calendar.
     """
+    year_start, year_end = dt.date(year, 1, 1), dt.date(year, 12, 31)
     months = []
-    current_date = YEAR_START
-    while(current_date <= YEAR_END):
+    current_date = year_start
+    while(current_date <= year_end):
         month = {
             "name_cz": months_cz[current_date.month - 1],
             "name_en": months_en[current_date.month - 1],
@@ -20,7 +23,7 @@ def generate_months_for_full_year(months_cz, months_en, days_cz, days_en):
         }
 
         this_month = current_date.month
-        while(current_date.month == this_month and current_date <= YEAR_END):
+        while(current_date.month == this_month and current_date <= year_end):
             week = []
             for _ in range(7):
                 week.append({
@@ -30,7 +33,7 @@ def generate_months_for_full_year(months_cz, months_en, days_cz, days_en):
                     "day_en": days_en[current_date.weekday()],
                 })
                 current_date += dt.timedelta(days=1)
-                if(current_date.month != this_month or current_date == YEAR_END):
+                if(current_date.month != this_month or current_date == year_end):
                     break
 
             month["weeks"].append(week)
@@ -43,23 +46,23 @@ def generate_months_for_full_year(months_cz, months_en, days_cz, days_en):
 def print_and_dump(months, name):
     print(months)
     import json
-    with open(f'output/dump_{name}.json', 'w') as f:
+    with open(OUTPUT_DIR / f'dump_{name}.json', 'w') as f:
         json.dump(months, f, default=str, indent=4, ensure_ascii=False)
 
 
 # render and print pages
 def load_template(template_name):
-    jinja_env = Environment(loader=FileSystemLoader("templates"))
+    jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     template = jinja_env.get_template(template_name)
 
     return template
 
 def get_css_path():
-    return os.path.join("templates", "style.css")
+    return str(TEMPLATES_DIR / "style.css")
 
 def copy_css_to_output():
-    css_in_path = os.path.join("templates", "style.css")
-    css_out_path = os.path.join("output", "html", "style.css")
+    css_in_path = TEMPLATES_DIR / "style.css"
+    css_out_path = OUTPUT_DIR / "html" / "style.css"
 
     with open(css_in_path, "r") as f:
         style_css = f.read()
@@ -68,13 +71,13 @@ def copy_css_to_output():
 
 
 
-def render_pages_as_single_document(pages):
+def render_pages_as_single_document(pages, year):
     all_pages_content = ""
     for page in pages:
         templated_week = DOUBLEPAGE_TEMPLATE.render(
             days=page['days'], 
             month=page['month'], 
-            year=YEAR,
+            year=year,
             signature_number=page['_meta_signature_number'],
             global_page_number=page['_meta_global_page_number'],
             page_in_signature_number=page['_meta_page_in_signature_number']
@@ -86,13 +89,14 @@ def render_pages_as_single_document(pages):
     return full_page
 
 def output_html_to_file(html_content, filename, sheets_per_signature):
-    with open(f"output/html/{filename}_{sheets_per_signature}s.html", "w") as f:
+    with open(OUTPUT_DIR / "html" / f"{filename}_{sheets_per_signature}s.html", "w") as f:
         f.write(html_content)
 
 def render_html_to_pdf_and_output(html_content, filename, sheets_per_signature):
+    from weasyprint import HTML  # heavy native deps, only needed for PDF output
     style_path = get_css_path()
     HTML(string=html_content) \
-        .write_pdf(f"output/pdf/{filename}_{sheets_per_signature}s.pdf", pdf_variant="pdf/x-3", stylesheets=[style_path])
+        .write_pdf(str(OUTPUT_DIR / "pdf" / f"{filename}_{sheets_per_signature}s.pdf"), pdf_variant="pdf/x-3", stylesheets=[style_path])
 
 
 def generate_page():
@@ -137,8 +141,8 @@ def months_to_pages(months):
         month_names_cz = [ day['_month']['name_cz'] for day in i_page['days'] ]
         month_names_en = [ day['_month']['name_en'] for day in i_page['days'] ]
 
-        unique_months_cz = set(month_names_cz)
-        unique_months_en = set(month_names_en)
+        unique_months_cz = dict.fromkeys(month_names_cz)
+        unique_months_en = dict.fromkeys(month_names_en)
 
         i_page['month']['name_cz'] = "/".join(unique_months_cz)
         i_page['month']['name_en'] = "/".join(unique_months_en)
@@ -213,8 +217,6 @@ printed in double-sided format and folded together into signatures.
 
 # Constants
 YEAR = 2026
-YEAR_START = dt.date(YEAR, 1, 1)
-YEAR_END = dt.date(YEAR, 12, 31)
 SHEETS_PER_SIGNATURE = 5
 
 DAYS_EN = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -225,18 +227,27 @@ MONTHS_CZ = ["leden", "únor", "březen", "duben", "květen", "červen", "červe
 WRAPPER_TEMPLATE = load_template("wrapper.jinja")
 # template for a A4 page with ("double means" two A5 pages are rendered in a single A4-sized template page)
 DOUBLEPAGE_TEMPLATE = load_template("week.jinja")
-# copy style.css to output/html
-copy_css_to_output()
 
 
-months = generate_months_for_full_year(MONTHS_CZ, MONTHS_EN, DAYS_CZ, DAYS_EN)
-#print_and_dump(months, 'months')
-pages = months_to_pages(months)
-#print_and_dump(pages, 'pages')
-rearranged_pages = rearrange_pages_for_printing(sheets_per_signature=SHEETS_PER_SIGNATURE, pages=pages)
-#print_and_dump(signatures, 'signatures')
-html = render_pages_as_single_document(rearranged_pages)
-output_html_to_file(html, filename="full_year_signatures", sheets_per_signature=SHEETS_PER_SIGNATURE)
-#render_html_to_pdf_and_output(html, filename="full_year_signatures", sheets_per_signature=SHEETS_PER_SIGNATURE)
-exit(0)
+def build_pages(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE):
+    """Generate all pages for the year, rearranged for double-sided printing."""
+    months = generate_months_for_full_year(MONTHS_CZ, MONTHS_EN, DAYS_CZ, DAYS_EN, year)
+    pages = months_to_pages(months)
+    return rearrange_pages_for_printing(sheets_per_signature=sheets_per_signature, pages=pages)
 
+
+def render_year_html(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE):
+    return render_pages_as_single_document(build_pages(year, sheets_per_signature), year)
+
+
+def main():
+    (OUTPUT_DIR / "html").mkdir(parents=True, exist_ok=True)
+    (OUTPUT_DIR / "pdf").mkdir(parents=True, exist_ok=True)
+    copy_css_to_output()
+    html = render_year_html()
+    output_html_to_file(html, filename="full_year_signatures", sheets_per_signature=SHEETS_PER_SIGNATURE)
+    #render_html_to_pdf_and_output(html, filename="full_year_signatures", sheets_per_signature=SHEETS_PER_SIGNATURE)
+
+
+if __name__ == "__main__":
+    main()

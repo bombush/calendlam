@@ -1,2 +1,2 @@
 dist/*
-src/calendlam/output/*
+src/calendlam/output/*__pycache__/

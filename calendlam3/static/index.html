@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendlam</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: Arial, sans-serif; background: #e5e7eb; }
+    .toolbar { display: flex; align-items: center; gap: 1.25rem; padding: .6rem 1rem; background: #1f2937; color: #fff; }
+    .toolbar h1 { font-size: 1.1rem; margin: 0 auto 0 0; }
+    .toolbar input[type=number] { width: 5rem; padding: .25rem; }
+    .print-btn { padding: .45rem 1.2rem; background: #2563eb; color: #fff; border: 0; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+    .print-btn:disabled { opacity: .5; cursor: default; }
+    iframe { flex: 1; width: 100%; border: 0; }
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+</head>
+<body x-data="calendar()" x-init="$watch('zoom', applyZoom)">
+  <header class="toolbar">
+    <h1>Calendlam</h1>
+    <label>Year <input type="number" x-model.number="year" min="1" max="9999" @change="reload()"></label>
+    <label>Sheets/signature <input type="number" x-model.number="sheets" min="1" max="50" @change="reload()"></label>
+    <label>Zoom
+      <input type="range" min="0.3" max="1.5" step="0.05" x-model.number="zoom">
+      <span x-text="Math.round(zoom * 100) + '%'"></span>
+    </label>
+    <button class="print-btn" @click="print()" :disabled="!loaded">Print</button>
+  </header>
+
+  <!-- the preview subwindow: scrolls on its own -->
+  <iframe x-ref="frame" :src="src" @load="loaded = true; applyZoom()" title="Calendar preview"></iframe>
+
+  <script>
+    function calendar() {
+      return {
+        year: 2026, sheets: 5, zoom: 0.8, loaded: false,
+        src: '/render?year=2026&sheets=5',
+        reload() { this.loaded = false; this.src = `/render?year=${this.year}&sheets=${this.sheets}&_=${Date.now()}`; },
+        applyZoom() {
+          const doc = this.$refs.frame.contentDocument;
+          if (doc && doc.body) doc.body.style.zoom = this.zoom; // screen-only; print resets below
+        },
+        print() {
+          const w = this.$refs.frame.contentWindow, body = w.document.body, z = body.style.zoom;
+          body.style.zoom = 1;                       // print at true size regardless of preview zoom
+          w.addEventListener('afterprint', () => { body.style.zoom = z; }, { once: true });
+          w.focus(); w.print();
+        },
+      };
+    }
+  </script>
+</body>
+</html>
