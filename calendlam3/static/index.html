@@ -12,6 +12,8 @@
     .toolbar input[type=number] { width: 5rem; padding: .25rem; }
     .print-btn { padding: .45rem 1.2rem; background: #2563eb; color: #fff; border: 0; border-radius: 4px; font-size: 1rem; cursor: pointer; }
     .print-btn:disabled { opacity: .5; cursor: default; }
+    .toolbar.sub { padding: .35rem 1rem; background: #374151; font-size: .9rem; }
+    .toolbar.sub .val { display: inline-block; width: 2.5rem; }
     iframe { flex: 1; width: 100%; border: 0; }
   </style>
   <!-- all picker fonts, so the dropdown can preview them -->
@@ -36,9 +38,21 @@
     </label>
     <button class="print-btn" @click="print()" :disabled="!loaded">Print</button>
   </header>
+  <div class="toolbar sub">
+    <span>Lines (mm)</span>
+    <template x-for="l in lines" :key="l.key">
+      <label><span x-text="l.label"></span>
+        <select x-model="l.style" @change="applyLines()">
+          <template x-for="st in lineStyles" :key="st"><option :value="st" x-text="st"></option></template>
+        </select>
+        <input type="range" min="0" max="1" step="0.05" x-model.number="l.value" @input="applyLines()">
+        <span class="val" x-text="l.value.toFixed(2)"></span>
+      </label>
+    </template>
+  </div>
 
   <!-- the preview subwindow: scrolls on its own -->
-  <iframe x-ref="frame" :src="src" @load="loaded = true; applyZoom()" title="Calendar preview"></iframe>
+  <iframe x-ref="frame" :src="src" @load="loaded = true; applyZoom(); applyLines()" title="Calendar preview"></iframe>
 
   <script>
     function calendar() {
@@ -49,10 +63,25 @@
           { key: 'day_font', label: 'Day font', value: 'Rubik' },
           { key: 'month_font', label: 'Month font', value: 'Rubik' },
         ],
+        lineStyles: ['solid', 'dotted', 'dashed', 'none'],
+        lines: [
+          { key: 'row', label: 'Day', value: 0.5, style: 'solid' },
+          { key: 'q1', label: '1/4', value: 0.05, style: 'dotted' },
+          { key: 'mid', label: 'Middle', value: 0.1, style: 'dotted' },
+          { key: 'q3', label: '3/4', value: 0.05, style: 'dotted' },
+        ],
         src: '/render?year=2026&sheets=5&number_font=Cinzel&day_font=Rubik&month_font=Rubik',
         async init() { this.fonts = await (await fetch('/api/fonts')).json(); },
-        reload() { this.loaded = false; const fonts = this.pickers.map(p => `&${p.key}=${encodeURIComponent(p.value)}`).join('');
+        reload() { this.loaded = false; const fonts = this.pickers.map(p => `&${p.key}=${encodeURIComponent(p.value)}`).join('')
+            + this.lines.map(l => `&line_${l.key}=${l.value}&style_${l.key}=${l.style}`).join('');
           this.src = `/render?year=${this.year}&sheets=${this.sheets}${fonts}&_=${Date.now()}`; },
+        applyLines() { // live update, no reload; also survives printing
+          const doc = this.$refs.frame.contentDocument;
+          if (doc && doc.documentElement) this.lines.forEach(l => {
+            doc.documentElement.style.setProperty(`--line-${l.key}`, l.value + 'mm');
+            doc.documentElement.style.setProperty(`--line-${l.key}-style`, l.style);
+          });
+        },
         applyZoom() {
           const doc = this.$refs.frame.contentDocument;
           if (doc && doc.body) doc.body.style.zoom = this.zoom; // screen-only; print resets below

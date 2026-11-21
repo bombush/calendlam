@@ -31,8 +31,21 @@
     }
 
 
+    /* line thicknesses; the preview app overrides these (--line-*) */
+    :root {
+        --line-row: 0.5mm; /* solid line under each day */
+        --line-mid: 0.1mm; /* dotted line through the middle of each day */
+        --line-q1: 0.05mm; /* thin dotted divider at 1/4 of the day's height */
+        --line-q3: 0.05mm; /* thin dotted divider at 3/4 of the day's height */
+        /* border styles of the same lines: solid | dotted | dashed | none */
+        --line-row-style: solid;
+        --line-mid-style: dotted;
+        --line-q1-style: dotted;
+        --line-q3-style: dotted;
+    }
+
     .bottom-line-editable {
-        border-bottom: 0.02835em dotted #999; /* 0.1mm */
+        border-bottom: var(--line-mid) var(--line-mid-style) #999;
         width: calc(100% - 1.417em); /* 5mm */
     }
 
@@ -60,9 +73,21 @@
     .date-row-editable {
         width:100%;
         height: 6.8em; /* 24mm */
-        border-bottom: 0.14175em solid black; /* 0.5mm */
+        border-bottom: var(--line-row) var(--line-row-style) black;
         background-color: white;
+        position: relative;
     }
+
+    /* extra dividers: start further from the left than the dotted line (number block + 5mm + 5mm) */
+    .divider-editable {
+        position: absolute;
+        left: 7.08em; /* 25mm */
+        right: 0;
+        height: 0;
+        border-top: 0 #999;
+    }
+    .divider-q1-editable { top: 25%; border-top-width: var(--line-q1); border-top-style: var(--line-q1-style); }
+    .divider-q3-editable { top: 75%; border-top-width: var(--line-q3); border-top-style: var(--line-q3-style); }
 
 
     .number-block-editable {

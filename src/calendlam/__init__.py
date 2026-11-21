@@ -28,6 +28,10 @@ FONT_TARGETS = {
     "month": ".header-text-font-editable",           # month header
 }
 
+# thickness overrides (in mm) accepted for the lines on each day
+LINE_NAMES = ("row", "mid", "q1", "q3")
+LINE_STYLES = ("solid", "dotted", "dashed", "none")
+
 _jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
 WRAPPER_TEMPLATE = _jinja_env.get_template("wrapper.jinja")
 PAGE_TEMPLATE = _jinja_env.get_template("week.jinja")
@@ -125,7 +129,7 @@ def build_sheet_sides(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE):
 
 # ----------------------------------------------------------------- render ----
 
-def render_pages_as_single_document(sides, year, show_page_info=True, fonts=None):
+def render_pages_as_single_document(sides, year, show_page_info=True, fonts=None, lines=None, line_styles=None):
     content = ""
     for left, right in sides:
         rendered = []
@@ -137,14 +141,19 @@ def render_pages_as_single_document(sides, year, show_page_info=True, fonts=None
     return WRAPPER_TEMPLATE.render(
         content=content,
         font_rules=[(FONT_TARGETS[k], family) for k, family in (fonts or {}).items() if family],
+        line_vars=[(k, float(v)) for k, v in (lines or {}).items() if k in LINE_NAMES and v is not None],
+        line_style_vars=[(k, v) for k, v in (line_styles or {}).items() if k in LINE_NAMES and v in LINE_STYLES],
     )
 
 
-def render_year_html(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE, show_page_info=True, fonts=None):
-    """fonts: optional {target: Google Fonts family} overriding the stylesheet defaults;
+def render_year_html(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE, show_page_info=True, fonts=None, lines=None, line_styles=None):
+    """line_styles: optional {name: border style} for the same keys, values from LINE_STYLES.
+    lines: optional {name: thickness in mm} for the keys of LINE_NAMES
+    (row = solid line under a day, mid = dotted middle line, q1/q3 = thin dividers at 1/4 and 3/4).
+    fonts: optional {target: Google Fonts family} overriding the stylesheet defaults;
     targets are the keys of FONT_TARGETS ('number', 'day', 'month')."""
     return render_pages_as_single_document(
-        build_sheet_sides(year, sheets_per_signature), year, show_page_info, fonts)
+        build_sheet_sides(year, sheets_per_signature), year, show_page_info, fonts, lines, line_styles)
 
 
 def get_css_path():

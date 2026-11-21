@@ -10,6 +10,7 @@ Run from the repository root:
 import re
 import sys
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, HTMLResponse
@@ -42,6 +43,8 @@ FONTS = [
     "Righteous", "Bungee", "Orbitron", "Press Start 2P", "Monoton", "Fredericka the Great",
 ]
 
+LineStyle = Literal["solid", "dotted", "dashed", "none"]  # keep in sync with calendlam.LINE_STYLES
+
 app = FastAPI(title="Calendlam")
 
 
@@ -58,13 +61,24 @@ def render(
     number_font: str | None = None,
     day_font: str | None = None,
     month_font: str | None = None,
+    line_row: float | None = Query(None, ge=0, le=2),
+    line_mid: float | None = Query(None, ge=0, le=2),
+    line_q1: float | None = Query(None, ge=0, le=2),
+    line_q3: float | None = Query(None, ge=0, le=2),
+    style_row: LineStyle | None = None,
+    style_mid: LineStyle | None = None,
+    style_q1: LineStyle | None = None,
+    style_q3: LineStyle | None = None,
 ):
     """Full printable HTML document with the stylesheet inlined."""
     fonts = {"number": number_font, "day": day_font, "month": month_font}
     for font in fonts.values():
         if font is not None and font not in FONTS:  # whitelist: value goes into CSS/URL
             raise HTTPException(status_code=422, detail="unknown font")
-    html = calendlam.render_year_html(year, sheets, info, fonts)
+    html = calendlam.render_year_html(
+        year, sheets, info, fonts,
+        lines={"row": line_row, "mid": line_mid, "q1": line_q1, "q3": line_q3},
+        line_styles={"row": style_row, "mid": style_mid, "q1": style_q1, "q3": style_q3})
     css = (calendlam.TEMPLATES_DIR / "style.css").read_text()
     html = re.sub(r'<link rel="stylesheet" href="style.css">',
                   lambda _: f"<style>{css}{PREVIEW_CSS}</style>", html)
