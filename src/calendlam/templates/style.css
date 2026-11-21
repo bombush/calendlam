@@ -203,13 +203,13 @@
     .month-row {
         display: flex;
         align-items: baseline;
-        gap: 1.5mm;
+        gap: 1mm;
         height: var(--layout-overview-row-height);
         border-bottom: var(--line-row) var(--line-row-style) black;
         font-size: 1em;
     }
 
-    .month-row-number { width: 2em; }
+    .month-row-number { width: 1.4em; }
     .month-row-day { font-size: 0.8em; }
 
     .bottom-line {
