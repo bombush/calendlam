@@ -33,11 +33,13 @@
 
     /* line thicknesses; the preview app overrides these (--line-*) */
     :root {
+        --line-header: 1mm; /* solid line under the month header */
         --line-row: 0.5mm; /* solid line under each day */
         --line-mid: 0.1mm; /* dotted line through the middle of each day */
         --line-q1: 0.05mm; /* thin dotted divider at 1/4 of the day's height */
         --line-q3: 0.05mm; /* thin dotted divider at 3/4 of the day's height */
         /* border styles of the same lines: solid | dotted | dashed | none */
+        --line-header-style: solid;
         --line-row-style: solid;
         --line-mid-style: dotted;
         --line-q1-style: dotted;
@@ -56,7 +58,7 @@
         font-weight: bold;
         font-size: 1em; /* 10pt */
         color: black;
-        border-bottom: 0.2835em solid black; /* 1mm */
+        border-bottom: var(--line-header) var(--line-header-style) black;
     }
     .header-text-editable {
         margin-left: 0em; /* 0mm */

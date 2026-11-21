@@ -115,10 +115,12 @@ def render(
     number_font: str | None = None,
     day_font: str | None = None,
     month_font: str | None = None,
-    line_row: float | None = Query(None, ge=0, le=2),
-    line_mid: float | None = Query(None, ge=0, le=2),
-    line_q1: float | None = Query(None, ge=0, le=2),
-    line_q3: float | None = Query(None, ge=0, le=2),
+    line_header: float | None = Query(None, ge=0, le=3),
+    line_row: float | None = Query(None, ge=0, le=3),
+    line_mid: float | None = Query(None, ge=0, le=3),
+    line_q1: float | None = Query(None, ge=0, le=3),
+    line_q3: float | None = Query(None, ge=0, le=3),
+    style_header: LineStyle | None = None,
     style_row: LineStyle | None = None,
     style_mid: LineStyle | None = None,
     style_q1: LineStyle | None = None,
@@ -131,8 +133,8 @@ def render(
             raise HTTPException(status_code=422, detail="unknown font")
     html = calendlam.render_year_html(
         year, sheets, info, fonts,
-        lines={"row": line_row, "mid": line_mid, "q1": line_q1, "q3": line_q3},
-        line_styles={"row": style_row, "mid": style_mid, "q1": style_q1, "q3": style_q3})
+        lines={"header": line_header, "row": line_row, "mid": line_mid, "q1": line_q1, "q3": line_q3},
+        line_styles={"header": style_header, "row": style_row, "mid": style_mid, "q1": style_q1, "q3": style_q3})
     css = (calendlam.TEMPLATES_DIR / "style.css").read_text()
     html = re.sub(r'<link rel="stylesheet" href="style.css">',
                   lambda _: f"<style>{css}{PREVIEW_CSS}</style>", html)

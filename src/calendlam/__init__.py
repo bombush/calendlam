@@ -29,7 +29,7 @@ FONT_TARGETS = {
 }
 
 # thickness overrides (in mm) accepted for the lines on each day
-LINE_NAMES = ("row", "mid", "q1", "q3")
+LINE_NAMES = ("header", "row", "mid", "q1", "q3")
 LINE_STYLES = ("solid", "dotted", "dashed", "none")
 
 _jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
@@ -149,7 +149,7 @@ def render_pages_as_single_document(sides, year, show_page_info=True, fonts=None
 def render_year_html(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE, show_page_info=True, fonts=None, lines=None, line_styles=None):
     """line_styles: optional {name: border style} for the same keys, values from LINE_STYLES.
     lines: optional {name: thickness in mm} for the keys of LINE_NAMES
-    (row = solid line under a day, mid = dotted middle line, q1/q3 = thin dividers at 1/4 and 3/4).
+    (header = line under the month header, row = solid line under a day, mid = dotted middle line, q1/q3 = thin dividers at 1/4 and 3/4).
     fonts: optional {target: Google Fonts family} overriding the stylesheet defaults;
     targets are the keys of FONT_TARGETS ('number', 'day', 'month')."""
     return render_pages_as_single_document(

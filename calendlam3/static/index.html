@@ -56,7 +56,7 @@
         <select x-model="l.style" @change="applyLines()">
           <template x-for="st in lineStyles" :key="st"><option :value="st" x-text="st"></option></template>
         </select>
-        <input type="range" min="0" max="1" step="0.05" x-model.number="l.value" @input="applyLines()">
+        <input type="range" min="0" :max="l.max" step="0.05" x-model.number="l.value" @input="applyLines()">
         <span class="val" x-text="l.value.toFixed(2)"></span>
       </label>
     </template>
@@ -76,10 +76,11 @@
         ],
         lineStyles: ['solid', 'dotted', 'dashed', 'none'],
         lines: [
-          { key: 'row', label: 'Day', value: 0.5, style: 'solid' },
-          { key: 'q1', label: '1/4', value: 0.05, style: 'dotted' },
-          { key: 'mid', label: 'Middle', value: 0.1, style: 'dotted' },
-          { key: 'q3', label: '3/4', value: 0.05, style: 'dotted' },
+          { key: 'header', label: 'Header', value: 1, style: 'solid', max: 3 },
+          { key: 'row', label: 'Day', value: 0.5, style: 'solid', max: 1 },
+          { key: 'q1', label: '1/4', value: 0.05, style: 'dotted', max: 1 },
+          { key: 'mid', label: 'Middle', value: 0.1, style: 'dotted', max: 1 },
+          { key: 'q3', label: '3/4', value: 0.05, style: 'dotted', max: 1 },
         ],
         src: '', saves: [], selectedSave: '', saveName: '', message: '',
         async init() {
@@ -106,7 +107,7 @@
           this.pickers.forEach(p => { const f = (st.fonts || {})[p.key]; if (this.fonts.includes(f)) p.value = f; });
           this.lines.forEach(l => {
             const v = (st.lines || {})[l.key] || {};
-            l.value = num(v.value, 0, 1, l.value);
+            l.value = num(v.value, 0, l.max, l.value);
             if (this.lineStyles.includes(v.style)) l.style = v.style;
           });
         },
