@@ -1,7 +1,8 @@
 <div class="page-editable page">
+    {% if kind == "week" %}
     <div class="tiskovy-obrazec">
         <div class="header-editable">
-            <div class="header-text-editable header-text-font-editable">{{ month.name_cz | upper }} {{ year }}</div>
+            <div class="header-text-editable header-text-font-editable">{{ header | upper }}</div>
         </div>
         {% for day in days %}
         <div class="date-row-editable date-row">
@@ -13,9 +14,8 @@
         </div>
         {% endfor %}
     </div>
-    {% if signature_number is defined and global_page_number is defined %}
-    <div class="page-info rubik-regular">
-        S{{ signature_number|default(0) + 1 }} P{{ page_in_signature_number|default(0) + 1 }} / G{{ global_page_number|default(0) + 1 }}
-    </div>
+    {% endif %}
+    {% if info %}
+    <div class="page-info rubik-regular">{{ info }}</div>
     {% endif %}
 </div>

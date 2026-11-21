@@ -27,7 +27,10 @@ PREVIEW_CSS = """
 @media screen {
   html { background: #e5e7eb; }
   body { padding: 16px 0; }
-  .page { margin: 0 auto 16px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+  .sheet-side { width: 289mm; height: 202mm; margin: 0 auto 16px; background: #fff;
+                box-shadow: 0 2px 8px rgba(0,0,0,.25); position: relative; }
+  .sheet-side::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0;
+                       border-left: 1px dashed #bbb; }  /* fold line */
 }
 """
 
@@ -38,9 +41,10 @@ app = FastAPI(title="Calendlam")
 def render(
     year: int = Query(calendlam.YEAR, ge=1, le=9999),
     sheets: int = Query(calendlam.SHEETS_PER_SIGNATURE, ge=1, le=50),
+    info: bool = True,
 ):
     """Full printable HTML document with the stylesheet inlined."""
-    html = calendlam.render_year_html(year, sheets)
+    html = calendlam.render_year_html(year, sheets, info)
     css = (calendlam.TEMPLATES_DIR / "style.css").read_text()
     html = re.sub(r'<link rel="stylesheet" href="style.css">',
                   lambda _: f"<style>{css}{PREVIEW_CSS}</style>", html)

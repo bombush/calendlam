@@ -1,0 +1,166 @@
+   /* reset css so Chrome doesn't add extra margin and padding */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    
+    html {
+        font-size: 10pt; /* Base font-size for em scaling. This controls the overall scaling of the page */
+    }
+    
+    /* real CSS starts here 
+    you can edit any CSS below which are marked as "editable"
+    */
+    @page {
+        size: A4 landscape;
+        margin: 4mm /* margin of the physical print area. modify according to your printer using trial and error :) */
+    }
+
+    .page-editable {
+        border: 1px solid white;
+        width: 32.61em; /* 115mm */
+        height: 55.31em; /* 195mm */
+        background-color: white;
+    }
+
+
+    .bottom-line-editable {
+        border-bottom: 0.02835em dotted #999; /* 0.1mm */
+        width: calc(100% - 1.417em); /* 5mm */
+    }
+
+    .header-editable {
+        width:100%;
+        background-color: white;
+        text-align: left;
+        font-weight: bold;
+        font-size: 1em; /* 10pt */
+        color: black;
+        border-bottom: 0.2835em solid black; /* 1mm */
+    }
+    .header-text-editable {
+        margin-left: 0em; /* 0mm */
+        margin-bottom: 0.567em; /* 2mm */
+    }
+    .header-text-font-editable {
+        font-family: "Rubik", sans-serif;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+    }
+    
+
+    .date-row-editable {
+        width:100%;
+        height: 6.8em; /* 24mm */
+        border-bottom: 0.14175em solid black; /* 0.5mm */
+        background-color: white;
+    }
+
+
+    .number-block-editable {
+        color:black;
+        margin-left: 0em; /* 0mm */
+        margin-right: 1.417em; /* 5mm */
+        width: 4.25em; /* 15mm */
+        height: 4.25em; /* 15mm */
+    }
+
+    .number-block-number-editable {
+        font-size: 3.4em; /* 12mm */
+        color:black
+    }
+
+    .number-block-number-font-editable {
+        font-family: "Rubik Glitch", system-ui;
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    .day-cz-editable {
+        font-size: 0.85em; /* 3mm */
+        margin-top: -0.2835em; /* -1mm */
+    }
+
+    .day-cz-font-editable {
+        font-family: "Rubik", sans-serif;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+    }
+
+
+    
+    /* The styles below should not be edited if you are not sure what you are doing */
+    .page {
+        position: relative;
+    }
+
+    /* one A4 landscape sheet side = two A5 book pages, one per half (fold line in the middle) */
+    .sheet-side {
+        display: flex;
+        break-after: page;
+        width: 100%;
+    }
+
+    .half {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+
+    .page-info {
+        position: absolute;
+        bottom: 0.567em; /* 2mm */
+        right: 0.567em; /* 2mm */
+        font-size: 0.6em; /* 6pt */
+        color: #666;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 0.2835em 0.567em; /* 1mm 2mm */
+        border-radius: 0.567em; /* 2mm */
+    }
+
+    .sekuya-regular {
+        font-family: "Sekuya", system-ui;
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    .number-block {
+    
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        
+    }
+
+    .date-row {
+        display: flex;
+        align-items: center;
+    }
+
+    .tiskovy-obrazec {
+        /*height: 175mm;*/
+        /*width: 95mm;*/
+        /*border: 1px solid black;*/
+        margin-left: 2.835em; /* 10mm */
+        margin-top: 2.835em; /* 10mm */
+    }
+
+    .bottom-line {
+        height: 0em; /* 0mm */
+    }
+
+    .rubik-regular {
+        font-family: "Rubik", sans-serif;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+    }

@@ -100,8 +100,20 @@
     
     /* The styles below should not be edited if you are not sure what you are doing */
     .page {
-        break-after: page;
         position: relative;
+    }
+
+    /* one A4 landscape sheet side = two A5 book pages, one per half (fold line in the middle) */
+    .sheet-side {
+        display: flex;
+        break-after: page;
+        width: 100%;
+    }
+
+    .half {
+        flex: 1;
+        display: flex;
+        justify-content: center;
     }
 
     .page-info {
