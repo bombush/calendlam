@@ -21,6 +21,13 @@ SHEETS_PER_SIGNATURE = 5  # one sheet = one A4 folded in half = 4 book pages
 DAYS_CZ = ["pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle"]
 MONTHS_CZ = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"]
 
+# CSS selectors of the text elements whose font can be overridden
+FONT_TARGETS = {
+    "number": ".number-block-number-font-editable",  # day numbers
+    "day": ".day-cz-font-editable",                  # weekday names
+    "month": ".header-text-font-editable",           # month header
+}
+
 _jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
 WRAPPER_TEMPLATE = _jinja_env.get_template("wrapper.jinja")
 PAGE_TEMPLATE = _jinja_env.get_template("week.jinja")
@@ -118,7 +125,7 @@ def build_sheet_sides(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE):
 
 # ----------------------------------------------------------------- render ----
 
-def render_pages_as_single_document(sides, year, show_page_info=True):
+def render_pages_as_single_document(sides, year, show_page_info=True, fonts=None):
     content = ""
     for left, right in sides:
         rendered = []
@@ -127,12 +134,17 @@ def render_pages_as_single_document(sides, year, show_page_info=True):
                 kind=page["kind"], header=page["header"], days=page["days"],
                 year=year, info=page["info"] if show_page_info else ""))
         content += f'<div class="sheet-side"><div class="half">{rendered[0]}</div><div class="half">{rendered[1]}</div></div>\n'
-    return WRAPPER_TEMPLATE.render(content=content)
+    return WRAPPER_TEMPLATE.render(
+        content=content,
+        font_rules=[(FONT_TARGETS[k], family) for k, family in (fonts or {}).items() if family],
+    )
 
 
-def render_year_html(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE, show_page_info=True):
+def render_year_html(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE, show_page_info=True, fonts=None):
+    """fonts: optional {target: Google Fonts family} overriding the stylesheet defaults;
+    targets are the keys of FONT_TARGETS ('number', 'day', 'month')."""
     return render_pages_as_single_document(
-        build_sheet_sides(year, sheets_per_signature), year, show_page_info)
+        build_sheet_sides(year, sheets_per_signature), year, show_page_info, fonts)
 
 
 def get_css_path():

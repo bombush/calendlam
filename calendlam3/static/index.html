@@ -14,6 +14,8 @@
     .print-btn:disabled { opacity: .5; cursor: default; }
     iframe { flex: 1; width: 100%; border: 0; }
   </style>
+  <!-- all picker fonts, so the dropdown can preview them -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik+Glitch&family=Rubik&family=Open+Sans&family=Bebas+Neue&family=Oswald&family=Roboto+Slab&family=Playfair+Display&family=Abril+Fatface&family=Cinzel&family=Lobster&family=Pacifico&family=Caveat&family=Permanent+Marker&family=Shadows+Into+Light&family=Special+Elite&family=Righteous&family=Bungee&family=Orbitron&family=Press+Start+2P&family=Monoton&family=Fredericka+the+Great&display=swap">
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 </head>
 <body x-data="calendar()" x-init="$watch('zoom', applyZoom)">
@@ -21,6 +23,13 @@
     <h1>Calendlam</h1>
     <label>Year <input type="number" x-model.number="year" min="1" max="9999" @change="reload()"></label>
     <label>Sheets/signature <input type="number" x-model.number="sheets" min="1" max="50" @change="reload()"></label>
+    <template x-for="p in pickers" :key="p.key">
+      <label><span x-text="p.label"></span>
+        <select x-model="p.value" @change="reload()" :style="`font-family: '${p.value}'`">
+          <template x-for="f in fonts" :key="f"><option :value="f" :style="`font-family: '${f}'`" x-text="f"></option></template>
+        </select>
+      </label>
+    </template>
     <label>Zoom
       <input type="range" min="0.3" max="1.5" step="0.05" x-model.number="zoom">
       <span x-text="Math.round(zoom * 100) + '%'"></span>
@@ -34,9 +43,16 @@
   <script>
     function calendar() {
       return {
-        year: 2026, sheets: 5, zoom: 0.8, loaded: false,
-        src: '/render?year=2026&sheets=5',
-        reload() { this.loaded = false; this.src = `/render?year=${this.year}&sheets=${this.sheets}&_=${Date.now()}`; },
+        year: 2026, sheets: 5, zoom: 0.8, loaded: false, fonts: [],
+        pickers: [
+          { key: 'number_font', label: 'Number font', value: 'Cinzel' },
+          { key: 'day_font', label: 'Day font', value: 'Rubik' },
+          { key: 'month_font', label: 'Month font', value: 'Rubik' },
+        ],
+        src: '/render?year=2026&sheets=5&number_font=Cinzel&day_font=Rubik&month_font=Rubik',
+        async init() { this.fonts = await (await fetch('/api/fonts')).json(); },
+        reload() { this.loaded = false; const fonts = this.pickers.map(p => `&${p.key}=${encodeURIComponent(p.value)}`).join('');
+          this.src = `/render?year=${this.year}&sheets=${this.sheets}${fonts}&_=${Date.now()}`; },
         applyZoom() {
           const doc = this.$refs.frame.contentDocument;
           if (doc && doc.body) doc.body.style.zoom = this.zoom; // screen-only; print resets below

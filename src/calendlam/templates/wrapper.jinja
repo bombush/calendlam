@@ -1,7 +1,13 @@
 <html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rubik+Glitch&family=Rubik:ital,wght@0,300..900;1,300..900&family=Sekuya&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Rubik:ital,wght@0,300..900;1,300..900&family=Sekuya&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+{% if font_rules %}
+<link href="https://fonts.googleapis.com/css2?{% for family in font_rules | map(attribute=1) | unique %}family={{ family | urlencode }}&{% endfor %}display=swap" rel="stylesheet">
+<style>
+{% for selector, family in font_rules %}{{ selector }} { font-family: "{{ family }}", system-ui; }
+{% endfor %}</style>
+{% endif %}
 {{ content }}
 </html>
