@@ -34,6 +34,7 @@
         </select>
       </label>
     </template>
+    <label><input type="checkbox" x-model="showInfo" @change="reload()"> Page labels</label>
     <label>Zoom
       <input type="range" min="0.3" max="1.5" step="0.05" x-model.number="zoom">
       <span x-text="Math.round(zoom * 100) + '%'"></span>
@@ -77,7 +78,7 @@
   <script>
     function calendar() {
       return {
-        year: 2026, sheets: 5, zoom: 0.8, loaded: false, fonts: [],
+        year: 2026, sheets: 5, zoom: 0.8, showInfo: true, loaded: false, fonts: [],
         pickers: [
           { key: 'number_font', label: 'Number font', value: 'Cinzel' },
           { key: 'day_font', label: 'Day font', value: 'Rubik' },
@@ -108,7 +109,7 @@
         },
         snapshot() {
           return {
-            year: this.year, sheets: this.sheets, zoom: this.zoom,
+            year: this.year, sheets: this.sheets, zoom: this.zoom, showInfo: this.showInfo,
             fonts: Object.fromEntries(this.pickers.map(p => [p.key, p.value])),
             lines: Object.fromEntries(this.lines.map(l => [l.key, { value: l.value, style: l.style }])),
             layout: Object.fromEntries(this.layout.map(l => [l.key, l.value])),
@@ -119,6 +120,7 @@
           this.year = num(st.year, 1, 9999, this.year);
           this.sheets = num(st.sheets, 1, 50, this.sheets);
           this.zoom = num(st.zoom, 0.3, 1.5, this.zoom);
+          if (typeof st.showInfo === 'boolean') this.showInfo = st.showInfo;
           this.pickers.forEach(p => { const f = (st.fonts || {})[p.key]; if (this.fonts.includes(f)) p.value = f; });
           this.layout.forEach(l => { l.value = num((st.layout || {})[l.key], l.min ?? 0, l.max, l.value); });
           this.lines.forEach(l => {
@@ -149,7 +151,7 @@
         reload() { this.loaded = false; const fonts = this.pickers.map(p => `&${p.key}=${encodeURIComponent(p.value)}`).join('')
             + this.lines.map(l => `&line_${l.key}=${l.value}&style_${l.key}=${l.style}`).join('')
             + this.layout.map(l => `&${l.key}=${l.value}`).join('');
-          this.src = `/render?year=${this.year}&sheets=${this.sheets}${fonts}&_=${Date.now()}`; },
+          this.src = `/render?year=${this.year}&sheets=${this.sheets}&info=${this.showInfo}${fonts}&_=${Date.now()}`; },
         applyLines() { // live update, no reload; also survives printing
           const doc = this.$refs.frame.contentDocument;
           if (doc && doc.documentElement) this.lines.forEach(l => {

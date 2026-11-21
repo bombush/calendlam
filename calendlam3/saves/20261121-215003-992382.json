@@ -1,0 +1,42 @@
+{
+  "name": "",
+  "saved_at": "2026-11-21T21:50:03",
+  "settings": {
+    "year": 2027,
+    "sheets": 5,
+    "zoom": 0.8,
+    "showInfo": false,
+    "fonts": {
+      "number_font": "Cinzel",
+      "day_font": "Cinzel",
+      "month_font": "Cinzel"
+    },
+    "lines": {
+      "header": {
+        "value": 0.6,
+        "style": "solid"
+      },
+      "row": {
+        "value": 0.4,
+        "style": "solid"
+      },
+      "q1": {
+        "value": 0.05,
+        "style": "dotted"
+      },
+      "mid": {
+        "value": 0.1,
+        "style": "dotted"
+      },
+      "q3": {
+        "value": 0.05,
+        "style": "dotted"
+      }
+    },
+    "layout": {
+      "row_height": 26,
+      "margin_left": 5,
+      "extend_right": 14.75
+    }
+  }
+}
