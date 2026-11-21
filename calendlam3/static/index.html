@@ -61,6 +61,15 @@
       </label>
     </template>
   </div>
+  <div class="toolbar sub">
+    <span>Layout (mm)</span>
+    <template x-for="l in layout" :key="l.key">
+      <label><span x-text="l.label"></span>
+        <input type="range" min="0" :max="l.max" step="0.25" x-model.number="l.value" @input="applyLines()">
+        <span class="val" x-text="l.value.toFixed(2)"></span>
+      </label>
+    </template>
+  </div>
 
   <!-- the preview subwindow: scrolls on its own -->
   <iframe x-ref="frame" :src="src" @load="if (src) { loaded = true; applyZoom(); applyLines() }" title="Calendar preview"></iframe>
@@ -73,6 +82,10 @@
           { key: 'number_font', label: 'Number font', value: 'Cinzel' },
           { key: 'day_font', label: 'Day font', value: 'Rubik' },
           { key: 'month_font', label: 'Month font', value: 'Rubik' },
+        ],
+        layout: [
+          { key: 'margin_left', css: '--layout-margin-left', label: 'Left margin', value: 5, max: 20 },
+          { key: 'extend_right', css: '--layout-extend-right', label: 'Stretch right (14.75 = to fold)', value: 14.75, max: 14.75 },
         ],
         lineStyles: ['solid', 'dotted', 'dashed', 'none'],
         lines: [
@@ -97,6 +110,7 @@
             year: this.year, sheets: this.sheets, zoom: this.zoom,
             fonts: Object.fromEntries(this.pickers.map(p => [p.key, p.value])),
             lines: Object.fromEntries(this.lines.map(l => [l.key, { value: l.value, style: l.style }])),
+            layout: Object.fromEntries(this.layout.map(l => [l.key, l.value])),
           };
         },
         applySettings(st) {  // only known keys, validated, so old/odd saves can't break the page
@@ -105,6 +119,7 @@
           this.sheets = num(st.sheets, 1, 50, this.sheets);
           this.zoom = num(st.zoom, 0.3, 1.5, this.zoom);
           this.pickers.forEach(p => { const f = (st.fonts || {})[p.key]; if (this.fonts.includes(f)) p.value = f; });
+          this.layout.forEach(l => { l.value = num((st.layout || {})[l.key], 0, l.max, l.value); });
           this.lines.forEach(l => {
             const v = (st.lines || {})[l.key] || {};
             l.value = num(v.value, 0, l.max, l.value);
@@ -131,7 +146,8 @@
           } catch (e) { this.message = 'Save failed'; }
         },
         reload() { this.loaded = false; const fonts = this.pickers.map(p => `&${p.key}=${encodeURIComponent(p.value)}`).join('')
-            + this.lines.map(l => `&line_${l.key}=${l.value}&style_${l.key}=${l.style}`).join('');
+            + this.lines.map(l => `&line_${l.key}=${l.value}&style_${l.key}=${l.style}`).join('')
+            + this.layout.map(l => `&${l.key}=${l.value}`).join('');
           this.src = `/render?year=${this.year}&sheets=${this.sheets}${fonts}&_=${Date.now()}`; },
         applyLines() { // live update, no reload; also survives printing
           const doc = this.$refs.frame.contentDocument;
@@ -139,6 +155,7 @@
             doc.documentElement.style.setProperty(`--line-${l.key}`, l.value + 'mm');
             doc.documentElement.style.setProperty(`--line-${l.key}-style`, l.style);
           });
+          this.layout.forEach(l => doc.documentElement.style.setProperty(l.css, l.value + 'mm'));
         },
         applyZoom() {
           const doc = this.$refs.frame.contentDocument;

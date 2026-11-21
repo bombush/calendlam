@@ -33,6 +33,10 @@
 
     /* line thicknesses; the preview app overrides these (--line-*) */
     :root {
+        /* layout of the day area on a week page */
+        --layout-margin-left: 5mm;    /* gap left of the day area */
+        --layout-extend-right: 14.75mm; /* how far lines stretch past the page's right edge; 14.75mm = to the fold,
+                                          because the 115mm page is centred in its 144.5mm half of the sheet */
         --line-header: 1mm; /* solid line under the month header */
         --line-row: 0.5mm; /* solid line under each day */
         --line-mid: 0.1mm; /* dotted line through the middle of each day */
@@ -177,7 +181,8 @@
         /*height: 175mm;*/
         /*width: 95mm;*/
         /*border: 1px solid black;*/
-        margin-left: 2.835em; /* 10mm */
+        margin-left: var(--layout-margin-left);
+        margin-right: calc(-1 * var(--layout-extend-right)); /* negative: the day area (and its lines) grows to the right */
         margin-top: 2.835em; /* 10mm */
     }
 

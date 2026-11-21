@@ -9,8 +9,8 @@
 {% for selector, family in font_rules %}{{ selector }} { font-family: "{{ family }}", system-ui; }
 {% endfor %}</style>
 {% endif %}
-{% if line_vars or line_style_vars %}
-<style>:root { {% for name, mm in line_vars %}--line-{{ name }}: {{ mm }}mm; {% endfor %}{% for name, style in line_style_vars %}--line-{{ name }}-style: {{ style }}; {% endfor %}}</style>
+{% if line_vars or line_style_vars or layout_vars %}
+<style>:root { {% for name, mm in line_vars %}--line-{{ name }}: {{ mm }}mm; {% endfor %}{% for name, style in line_style_vars %}--line-{{ name }}-style: {{ style }}; {% endfor %}{% for name, mm in layout_vars %}--layout-{{ name }}: {{ mm }}mm; {% endfor %}}</style>
 {% endif %}
 {{ content }}
 </html>

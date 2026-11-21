@@ -31,6 +31,8 @@ FONT_TARGETS = {
 # thickness overrides (in mm) accepted for the lines on each day
 LINE_NAMES = ("header", "row", "mid", "q1", "q3")
 LINE_STYLES = ("solid", "dotted", "dashed", "none")
+# layout overrides (in mm): gap left of the day area, and how far lines stretch right (to the fold by default)
+LAYOUT_NAMES = ("margin-left", "extend-right")
 
 _jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
 WRAPPER_TEMPLATE = _jinja_env.get_template("wrapper.jinja")
@@ -129,7 +131,7 @@ def build_sheet_sides(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE):
 
 # ----------------------------------------------------------------- render ----
 
-def render_pages_as_single_document(sides, year, show_page_info=True, fonts=None, lines=None, line_styles=None):
+def render_pages_as_single_document(sides, year, show_page_info=True, fonts=None, lines=None, line_styles=None, layout=None):
     content = ""
     for left, right in sides:
         rendered = []
@@ -142,18 +144,20 @@ def render_pages_as_single_document(sides, year, show_page_info=True, fonts=None
         content=content,
         font_rules=[(FONT_TARGETS[k], family) for k, family in (fonts or {}).items() if family],
         line_vars=[(k, float(v)) for k, v in (lines or {}).items() if k in LINE_NAMES and v is not None],
+        layout_vars=[(k, float(v)) for k, v in (layout or {}).items() if k in LAYOUT_NAMES and v is not None],
         line_style_vars=[(k, v) for k, v in (line_styles or {}).items() if k in LINE_NAMES and v in LINE_STYLES],
     )
 
 
-def render_year_html(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE, show_page_info=True, fonts=None, lines=None, line_styles=None):
-    """line_styles: optional {name: border style} for the same keys, values from LINE_STYLES.
+def render_year_html(year=YEAR, sheets_per_signature=SHEETS_PER_SIGNATURE, show_page_info=True, fonts=None, lines=None, line_styles=None, layout=None):
+    """layout: optional {name: mm} for the keys of LAYOUT_NAMES.
+    line_styles: optional {name: border style} for the same keys, values from LINE_STYLES.
     lines: optional {name: thickness in mm} for the keys of LINE_NAMES
     (header = line under the month header, row = solid line under a day, mid = dotted middle line, q1/q3 = thin dividers at 1/4 and 3/4).
     fonts: optional {target: Google Fonts family} overriding the stylesheet defaults;
     targets are the keys of FONT_TARGETS ('number', 'day', 'month')."""
     return render_pages_as_single_document(
-        build_sheet_sides(year, sheets_per_signature), year, show_page_info, fonts, lines, line_styles)
+        build_sheet_sides(year, sheets_per_signature), year, show_page_info, fonts, lines, line_styles, layout)
 
 
 def get_css_path():
