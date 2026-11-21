@@ -6,6 +6,7 @@
   <title>Calendlam</title>
   <style>
     * { box-sizing: border-box; }
+    [x-cloak] { display: none !important; }
     body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: Arial, sans-serif; background: #e5e7eb; }
     .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.25rem; padding: .6rem 1rem; background: #1f2937; color: #fff; }
     .toolbar h1 { font-size: 1.1rem; margin: 0 auto 0 0; }
@@ -16,6 +17,17 @@
     .print-btn:disabled { opacity: .5; cursor: default; }
     .toolbar.sub { padding: .35rem 1rem; background: #374151; font-size: .9rem; }
     .toolbar.sub .val { display: inline-block; width: 2.5rem; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 10; }
+    .modal { background: #fff; color: #111; width: min(32rem, 92vw); border-radius: 8px; padding: 1.25rem 1.5rem; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+    .modal h2 { margin: 0 0 .25rem; font-size: 1.15rem; }
+    .modal p { margin: 0 0 .75rem; color: #4b5563; font-size: .9rem; }
+    .modal table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    .modal td { padding: .35rem .25rem; border-bottom: 1px solid #e5e7eb; }
+    .modal td:first-child { color: #4b5563; width: 45%; }
+    .modal td:last-child { font-weight: 600; }
+    .modal .actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+    .modal button { padding: .45rem 1.2rem; border-radius: 4px; border: 1px solid #d1d5db; background: #fff; font-size: 1rem; cursor: pointer; }
+    .modal button.ok { background: #2563eb; color: #fff; border-color: #2563eb; }
     iframe { flex: 1; width: 100%; border: 0; }
   </style>
   <!-- all picker fonts, so the dropdown can preview them -->
@@ -48,7 +60,7 @@
     <input type="text" x-model="saveName" placeholder="version name" maxlength="60" style="width: 9rem">
     <button class="save-btn" @click="save()">Save</button>
     <span class="msg" x-text="message"></span>
-    <button class="print-btn" @click="print()" :disabled="!loaded">Print</button>
+    <button class="print-btn" @click="showGuide = true" :disabled="!loaded">Print</button>
   </header>
   <div class="toolbar sub">
     <span>Lines (mm)</span>
@@ -72,13 +84,34 @@
     </template>
   </div>
 
+  <!-- print guide: shown before the browser's print dialog -->
+  <div class="modal-backdrop" x-show="showGuide" x-cloak x-transition.opacity @keydown.escape.window="showGuide = false" @click.self="showGuide = false">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+      <h2 id="guide-title">Before you print</h2>
+      <p>Choose these options in the print dialog that opens next:</p>
+      <table>
+        <tr><td>Paper size</td><td>A4</td></tr>
+        <tr><td>Layout / Orientation</td><td>Landscape</td></tr>
+        <tr><td>Scale</td><td>100% (not “Fit to page”)</td></tr>
+        <tr><td>Margins</td><td>Default</td></tr>
+        <tr><td>Two-sided</td><td>On</td></tr>
+        <tr><td>Flip</td><td>Flip on short edge</td></tr>
+        <tr><td>Headers and footers</td><td>Off</td></tr>
+      </table>
+      <div class="actions">
+        <button @click="showGuide = false">Cancel</button>
+        <button class="ok" x-ref="ok" @click="showGuide = false; print()">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- the preview subwindow: scrolls on its own -->
   <iframe x-ref="frame" :src="src" @load="if (src) { loaded = true; applyZoom(); applyLines() }" title="Calendar preview"></iframe>
 
   <script>
     function calendar() {
       return {
-        year: 2026, sheets: 5, zoom: 0.8, showInfo: true, loaded: false, fonts: [],
+        year: 2026, sheets: 5, zoom: 0.8, showInfo: true, showGuide: false, loaded: false, fonts: [],
         pickers: [
           { key: 'number_font', label: 'Number font', value: 'Cinzel' },
           { key: 'day_font', label: 'Day font', value: 'Rubik' },
